@@ -42,9 +42,19 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Username)
             </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EncryptedPassword)
-            </td>
+            @{
+    string decrypted = "Invalid";
+    if (PasswordManager.Helpers.EncryptionHelper.IsBase64String(item.EncryptedPassword))
+    {
+        decrypted = PasswordManager.Helpers.EncryptionHelper.Decrypt(item.EncryptedPassword);
+    }
+}
+<td>
+    <span class="password-value" style="letter-spacing: 2px;">********</span>
+    <button type="button" class="btn btn-sm btn-outline-secondary toggle-password">👁️</button>
+    <span class="real-password d-none">@decrypted</span>
+</td>
+
             <td>
                 @Html.DisplayFor(modelItem => item.Notes)
             </td>
@@ -63,3 +73,24 @@
 }
     </tbody>
 </table>
+@section Scripts {
+    <script>
+        document.querySelectorAll(".toggle-password").forEach(button => {
+            button.addEventListener("click", () => {
+                const container = button.closest("td");
+                const hidden = container.querySelector(".real-password");
+                const masked = container.querySelector(".password-value");
+
+                if (hidden.classList.contains("d-none")) {
+                    masked.style.display = "none";
+                    hidden.classList.remove("d-none");
+                    button.innerText = "🙈";
+                } else {
+                    masked.style.display = "inline";
+                    hidden.classList.add("d-none");
+                    button.innerText = "👁️";
+                }
+            });
+        });
+    </script>
+}

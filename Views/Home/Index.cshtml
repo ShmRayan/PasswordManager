@@ -3,6 +3,13 @@
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">Password Manager</h1>
+    <p class="lead">Bienvenue ! Cette application vous permet de gérer vos mots de passe de manière sécurisée.</p>
+
+    <a class="btn btn-primary btn-lg m-2" asp-controller="PasswordEntries" asp-action="Index">
+        📂 Voir mes mots de passe
+    </a>
+    <a class="btn btn-success btn-lg m-2" asp-controller="PasswordEntries" asp-action="Create">
+        ➕ Ajouter un mot de passe
+    </a>
 </div>

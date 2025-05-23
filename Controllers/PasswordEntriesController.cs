@@ -7,22 +7,33 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PasswordManager.Data;
 using PasswordManager.Models;
+using PasswordManager.Helpers;
+using Microsoft.AspNetCore.Identity;
+
 
 namespace PasswordManager.Controllers
 {
     public class PasswordEntriesController : Controller
     {
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
 
-        public PasswordEntriesController(ApplicationDbContext context)
+        public PasswordEntriesController(ApplicationDbContext context,UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: PasswordEntries
         public async Task<IActionResult> Index()
         {
-            return View(await _context.PasswordEntries.ToListAsync());
+            var userId = _userManager.GetUserId(User);
+
+            var entries = await _context.PasswordEntries
+            .Where(e => e.UserId == userId)
+            .ToListAsync();
+
+            return View(entries);
         }
 
         // GET: PasswordEntries/Details/5
@@ -54,17 +65,17 @@ namespace PasswordManager.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,ServiceName,Username,EncryptedPassword,Notes,CreatedAt,UserId")] PasswordEntry passwordEntry)
+        public async Task<IActionResult> Create([Bind("Id,ServiceName,Username,EncryptedPassword,Notes,CreatedAt")] PasswordEntry passwordEntry)
         {
             if (ModelState.IsValid)
             {
+                passwordEntry.UserId = _userManager.GetUserId(User);
                 _context.Add(passwordEntry);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             return View(passwordEntry);
         }
-
         // GET: PasswordEntries/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -97,7 +108,9 @@ namespace PasswordManager.Controllers
             {
                 try
                 {
+                    passwordEntry.EncryptedPassword = EncryptionHelper.Encrypt(passwordEntry.EncryptedPassword);
                     _context.Update(passwordEntry);
+
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
